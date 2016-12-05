@@ -29,7 +29,6 @@ namespace PokemonGameInfo.Dialogs
                     if("PokemonName".Equals(e.Type,StringComparison.InvariantCultureIgnoreCase))
                     {
                         PokemonName = e.Entity;
-                        await context.PostAsync($"Você quer saber o Tipo de: {PokemonName}");
                     }
                 }
 
@@ -37,10 +36,17 @@ namespace PokemonGameInfo.Dialogs
                 {
                     try
                     {
-                        PokemonSpecies p = await DataFetcher.GetNamedApiObject<PokemonSpecies>(PokemonName);
+                        Pokemon p = await DataFetcher.GetNamedApiObject<Pokemon>(PokemonName);
                         if(p != null)
                         {
-                            await context.PostAsync($"O Tipo de {p.Name} é {p.Genera[0].Name}");
+                            string Type = "";
+                            foreach (var tp in p.Types)
+                            {
+                                Type += tp.Type.Name;
+                                Type += " ";
+                            }
+                            
+                            await context.PostAsync($"O Tipo de {p.Name} é {Type.Trim()}");
                         }
                     }
                     catch (Exception e)
