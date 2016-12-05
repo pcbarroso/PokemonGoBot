@@ -8,6 +8,8 @@ using System.Web.Http.Description;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 using PokeAPI;
+using Microsoft.Bot.Builder.Dialogs;
+using PokemonGameInfo.Dialogs;
 
 namespace PokemonGameInfo
 {
@@ -21,20 +23,16 @@ namespace PokemonGameInfo
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
             ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
-            PokemonSpecies p = new PokemonSpecies();
             try
             {
-                p = await DataFetcher.GetApiObject<PokemonSpecies>(001);
-
                 if (activity.Type == ActivityTypes.ConversationUpdate)
                 {
-                    Activity reply = activity.CreateReply($"Benvindo {p.Name}!");
+                    Activity reply = activity.CreateReply($"Benvindo!");
                     await connector.Conversations.ReplyToActivityAsync(reply);
                 }
                 else if (activity.Type == ActivityTypes.Message)
                 {
-                    Activity reply = activity.CreateReply($"Ainda não sei nada {p.Name}");
-                    await connector.Conversations.ReplyToActivityAsync(reply);
+                    await Conversation.SendAsync(activity, () => new RootLuisDialog());
                 }
                 else
                 {
