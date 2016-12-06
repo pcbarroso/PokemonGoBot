@@ -10,6 +10,8 @@ using Newtonsoft.Json;
 using PokeAPI;
 using Microsoft.Bot.Builder.Dialogs;
 using PokemonGameInfo.Dialogs;
+using PokemonGameInfo.Helpers;
+using System.Collections.Generic;
 
 namespace PokemonGameInfo
 {

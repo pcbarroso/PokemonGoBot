@@ -23,6 +23,7 @@ namespace PokemonGameInfo.Dialogs
             
             if (result.Entities.Any())
             {
+                
                 string PokemonName = null;
                 foreach (var e in result.Entities)
                 {
@@ -34,25 +35,57 @@ namespace PokemonGameInfo.Dialogs
 
                 if(PokemonName != null)
                 {
-                    try
+                    Dictionary<int, double> Pokemons = Utils.FindPokemonSimilarities(PokemonName, 10);
+                    if(Pokemons.First().Value > 0.85 && (Pokemons.First().Value - Pokemons.ElementAt(1).Value) > 0.2)
                     {
-                        Pokemon p = await DataFetcher.GetNamedApiObject<Pokemon>(PokemonName);
-                        if(p != null)
+                        string PkmnName = "";
+                        if(Constants.PokemonNames.TryGetValue(Pokemons.First().Key,out PkmnName))
                         {
-                            string Type = "";
-                            foreach (var tp in p.Types)
-                            {
-                                Type += tp.Type.Name;
-                                Type += " ";
-                            }
-                            
-                            await context.PostAsync($"O Tipo de {p.Name} é {Type.Trim()}");
+                            await context.PostAsync($"Você quis dizer: {PkmnName}");
                         }
+                        
                     }
-                    catch (Exception e)
+                    else
                     {
+                        string Pkmns = "";
+                        foreach (var i in Pokemons)
+                        {
+                            string CurName = "";
+                            if(i.Value >= 0.6)
+                            {
+                                if(Constants.PokemonNames.TryGetValue(i.Key,out CurName))
+                                {
+                                    Pkmns += CurName;
+                                    Pkmns += " ";
+                                }
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        await context.PostAsync($"Você pode ter tentado dizer: {Pkmns.Trim()}");
 
                     }
+                    //try
+                    //{
+                    //    Pokemon p = await DataFetcher.GetNamedApiObject<Pokemon>(PokemonName);
+                    //    if(p != null)
+                    //    {
+                    //        string Type = "";
+                    //        foreach (var tp in p.Types)
+                    //        {
+                    //            Type += tp.Type.Name;
+                    //            Type += " ";
+                    //        }
+                            
+                    //        await context.PostAsync($"O Tipo de {p.Name} é {Type.Trim()}");
+                    //    }
+                    //}
+                    //catch (Exception e)
+                    //{
+
+                    //}
 
                 }
             }
