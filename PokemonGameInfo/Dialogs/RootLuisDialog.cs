@@ -41,13 +41,13 @@ namespace PokemonGameInfo.Dialogs
                         string PkmnName = "";
                         if(Constants.PokemonNames.TryGetValue(Pokemons.First().Key,out PkmnName))
                         {
-                            await context.PostAsync($"Você quis dizer: {PkmnName}");
+                            await GetPkmnType(context, PkmnName);
                         }
-                        
+                        context.Wait(MessageReceived);
                     }
                     else
                     {
-                        string Pkmns = "";
+                        List<string> Pkmns = new List<string>();
                         foreach (var i in Pokemons)
                         {
                             string CurName = "";
@@ -55,8 +55,7 @@ namespace PokemonGameInfo.Dialogs
                             {
                                 if(Constants.PokemonNames.TryGetValue(i.Key,out CurName))
                                 {
-                                    Pkmns += CurName;
-                                    Pkmns += " ";
+                                    Pkmns.Add(CurName);
                                 }
                             }
                             else
@@ -64,36 +63,53 @@ namespace PokemonGameInfo.Dialogs
                                 break;
                             }
                         }
-                        await context.PostAsync($"Você pode ter tentado dizer: {Pkmns.Trim()}");
-
-                    }
-                    //try
-                    //{
-                    //    Pokemon p = await DataFetcher.GetNamedApiObject<Pokemon>(PokemonName);
-                    //    if(p != null)
-                    //    {
-                    //        string Type = "";
-                    //        foreach (var tp in p.Types)
-                    //        {
-                    //            Type += tp.Type.Name;
-                    //            Type += " ";
-                    //        }
-                            
-                    //        await context.PostAsync($"O Tipo de {p.Name} é {Type.Trim()}");
-                    //    }
-                    //}
-                    //catch (Exception e)
-                    //{
-
-                    //}
-
+                        PromptDialog.Choice(context, CallbackSelPkmn, Pkmns,"Qual desses Pokémons você quis dizer?");
+                     }
                 }
             }
             else
             {
                 await context.PostAsync("Não entendi qual você procura");
+                context.Wait(MessageReceived);
             }
-            
+        }
+
+        private async Task CallbackSelPkmn(IDialogContext context, IAwaitable<string> result)
+        {
+            try
+            {
+                string text = await result;
+                await GetPkmnType(context, text);
+            }
+            catch (TooManyAttemptsException)
+            {
+                context.Wait(MessageReceived);
+            }
+        }
+
+        private async Task GetPkmnType(IDialogContext context, string PkmnName)
+        {
+            try
+            {
+                List<string> Types = new List<string>();
+                Pokemon p = await DataFetcher.GetNamedApiObject<Pokemon>(PkmnName);
+                if (p != null)
+                {
+                    string Tipos = "";
+                    foreach (var tp in p.Types)
+                    {
+                        Types.Add(tp.Type.Name);
+                        Tipos += tp.Type.Name;
+                        Tipos += " ";
+                    }
+                    //string Tipos = "Flying Dragon "; // Para testes no Proxy
+                    await context.PostAsync($"Tipo(s) de {PkmnName}: {Tipos.Trim()}");
+                }
+            }
+            catch (Exception e)
+            {
+                await context.PostAsync($"[GetPkmnType]Ocorreu um erro: {e.Message}");
+            }
             context.Wait(MessageReceived);
         }
 
