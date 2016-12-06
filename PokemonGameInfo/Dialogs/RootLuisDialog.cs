@@ -105,12 +105,12 @@ namespace PokemonGameInfo.Dialogs
                     //string Tipos = "Flying Dragon "; // Para testes no Proxy
                     await context.PostAsync($"Tipo(s) de {PkmnName}: {Tipos.Trim()}");
                 }
+                context.Wait(MessageReceived);
             }
             catch (Exception e)
             {
                 await context.PostAsync($"[GetPkmnType]Ocorreu um erro: {e.Message}");
             }
-            context.Wait(MessageReceived);
         }
 
         private string userToBotText;
